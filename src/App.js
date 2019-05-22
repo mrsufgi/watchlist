@@ -1,24 +1,23 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useContext, useEffect } from 'react';
+import { useFetch } from 'react-hooks-fetch';
 import './App.css';
+import WatchList from './components/WatchList';
+import Button from './components/Button';
 
 function App() {
+  useEffect(() => {
+    // login
+  }, []);
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <header>Watchlist</header>
+      <WatchList
+        authorized={true}
+        items={[{ name: 'btc', price: '100$' }, { name: 'eth', price: '10$' }]}
+      />
+      <div>
+        put login/out in menu menu <Button />
+      </div>
     </div>
   );
 }
