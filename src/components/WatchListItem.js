@@ -1,11 +1,12 @@
 import React from 'react';
 import Button from './Button';
 
-function WatchListItem({ name, price, onRemoveClick }) {
+function WatchListItem({ onButtonClick, ...token }) {
+  const { name, price } = token;
   return (
     <li onClick={() => {}}>
       name: {name}, price: {price}
-      <Button onClick={onRemoveClick} text="Unwatch" />
+      {onButtonClick && <Button onClick={() => onButtonClick(token)} text="Watch" />}
     </li>
   );
 }
