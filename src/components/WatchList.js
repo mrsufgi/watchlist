@@ -133,24 +133,29 @@ function WatchList() {
 
   return (
     <>
-      all tokens:
-      <select
-        onChange={event => {
-          const newSelectedToken = event.target.value;
-          setSelectedToken(newSelectedToken);
-        }}
-      >
-        {tokenOptions}
-      </select>
       {loggedIn && (
         <>
-          <button
-            onClick={() =>
-              selectedToken && addUserItem(tokens.find(token => token.tokenId === selectedToken))
-            }
-          >
-            add user item
-          </button>
+          {tokenOptions.length > 0 && (
+            <>
+              all tokens:
+              <select
+                onChange={event => {
+                  const newSelectedToken = event.target.value;
+                  setSelectedToken(newSelectedToken);
+                }}
+              >
+                {tokenOptions}
+              </select>
+              <button
+                onClick={() =>
+                  selectedToken &&
+                  addUserItem(tokens.find(token => token.tokenId === selectedToken))
+                }
+              >
+                Watch
+              </button>
+            </>
+          )}
           user tokens:
           <ul>{userListItems}</ul>
         </>

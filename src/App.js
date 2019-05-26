@@ -2,19 +2,20 @@ import React, { useState, useCallback, useEffect } from 'react';
 import './App.css';
 import WatchList from './components/WatchList';
 import useFetch from './useFetch';
+import api from './api';
 
 export const LoggedInContext = React.createContext();
 
 function useAuth() {
   const [accessToken, setAccessToken] = useState(false);
   const loginApi = () => {
-    return Promise.resolve({ data: { token: 'test' } });
+    return api.login();
   };
 
   const [loginRequest] = useFetch(loginApi);
 
   const login = useCallback(async () => {
-    const { data } = await loginRequest(); // await axios('http://localhost:8888/blox-user/tokens');
+    const { data } = await loginRequest();
     setAccessToken(data.token);
   }, [loginRequest]);
 
@@ -22,11 +23,14 @@ function useAuth() {
     setAccessToken(undefined);
   }, []);
 
+  useEffect(() => {
+    api.accessToken = accessToken;
+  }, [accessToken]);
+
   return [!!accessToken, login, logout];
 }
 function App() {
   const [loggedIn, login, logout] = useAuth();
-  useEffect(() => {}, [loggedIn]);
   return (
     <div className="App">
       <header>Watchlist</header>
