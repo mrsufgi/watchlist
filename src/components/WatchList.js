@@ -1,24 +1,10 @@
-import React, { useEffect, useCallback, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useContext, useCallback, useState } from 'react';
+// import axios from 'axios';
 import WatchListItem from './WatchListItem';
+import useFetch from '../useFetch';
+import { LoggedInContext } from '../App';
 
-const noop = () => {};
-function useFetch(request) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState();
-  const handler = useCallback(
-    async (...args) => {
-      if (isLoading) return;
-      setIsLoading(true);
-      const response = await request(...args);
-      setResult(response);
-      setIsLoading(false);
-      return response;
-    },
-    [isLoading, request],
-  );
-  return [handler, result, isLoading];
-}
+const refereshInterval = 5000; // 300000;
 
 function useUserList() {
   const [userItems, setUserItems] = useState([]);
@@ -32,9 +18,6 @@ function useUserList() {
 
   const [getUserItemsListRequest] = useFetch(getUserWatchList);
   const [updateUserListRequest] = useFetch(setUserWatchList);
-  // TODO: clarify if we want optimistic ui updates.
-  // TODO: show error if
-
   const getUserItems = useCallback(async () => {
     const { data } = await getUserItemsListRequest(); // await axios('http://localhost:8888/blox-user/tokens');
     setUserItems(data);
@@ -105,12 +88,15 @@ function useTokenList() {
   };
 }
 
-function WatchList({}) {
-  const { tokens /* getTokens */ } = useTokenList();
-  const { userItems, getUserItems, addUserItem, removeUserItem } = useUserList();
+function WatchList() {
+  const { tokens, getTokens } = useTokenList();
+  const { userItems, addUserItem, removeUserItem } = useUserList();
   const [selectedToken, setSelectedToken] = useState();
+  const { loggedIn } = useContext(LoggedInContext);
   useEffect(() => {
-    const availableTokens = tokens.filter(token => !userItems.includes(token));
+    const availableTokens = tokens.filter(token => {
+      return !userItems.find(item => token.tokenId === item.tokenId);
+    });
     if (availableTokens[0]) {
       setSelectedToken(availableTokens[0].tokenId);
     } else {
@@ -118,15 +104,27 @@ function WatchList({}) {
       setSelectedToken(undefined);
     }
   }, [tokens, userItems]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // TODO: perferrably refetch only user  only user watched tokens
+      getTokens();
+    }, refereshInterval);
+    return function cleanup() {
+      clearInterval(interval);
+    };
+  }, [getTokens]);
+
   const tokenOptions = tokens.reduce((acc, token) => {
-    if (!userItems.includes(token)) {
+    const shouldShow = !userItems.find(item => token.tokenId === item.tokenId) || !loggedIn;
+    if (shouldShow) {
       acc.push(<option key={token.tokenId} value={token.tokenId} label={token.name} />);
     }
     return acc;
   }, []);
 
   const userListItems = userItems.map(item => {
-    return <WatchListItem key={item.name} onButtonClick={removeUserItem} {...item} />;
+    const token = tokens.find(token => item.tokenId === token.tokenId);
+    return <WatchListItem key={token.name} onButtonClick={removeUserItem} {...token} />;
   });
 
   return (
@@ -140,15 +138,19 @@ function WatchList({}) {
       >
         {tokenOptions}
       </select>
-      <button
-        onClick={() =>
-          selectedToken && addUserItem(tokens.find(token => token.tokenId === selectedToken))
-        }
-      >
-        add user item
-      </button>
-      user tokens:
-      <ul>{userListItems}</ul>
+      {loggedIn && (
+        <>
+          <button
+            onClick={() =>
+              selectedToken && addUserItem(tokens.find(token => token.tokenId === selectedToken))
+            }
+          >
+            add user item
+          </button>
+          user tokens:
+          <ul>{userListItems}</ul>
+        </>
+      )}
     </>
   );
 }
