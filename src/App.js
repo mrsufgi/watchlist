@@ -8,11 +8,7 @@ export const LoggedInContext = React.createContext();
 
 function useAuth() {
   const [accessToken, setAccessToken] = useState(false);
-  const loginApi = () => {
-    return api.login();
-  };
-
-  const [loginRequest] = useFetch(loginApi);
+  const [loginRequest] = useFetch(api.login);
 
   const login = useCallback(async () => {
     const { data } = await loginRequest();
