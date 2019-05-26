@@ -1,5 +1,4 @@
 import React, { useReducer, useContext, useEffect } from 'react';
-import { useFetch } from 'react-hooks-fetch';
 import './App.css';
 import WatchList from './components/WatchList';
 import Button from './components/Button';
