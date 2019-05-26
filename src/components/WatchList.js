@@ -108,11 +108,22 @@ function useTokenList() {
 function WatchList({}) {
   const { tokens /* getTokens */ } = useTokenList();
   const { userItems, getUserItems, addUserItem, removeUserItem } = useUserList();
-  // TODO: create custom list hook
   const [selectedToken, setSelectedToken] = useState();
-  const tokenOptions = tokens.map(token => {
-    return <option key={token.tokenId} value={token.tokenId} label={token.name} />;
-  });
+  useEffect(() => {
+    const availableTokens = tokens.filter(token => !userItems.includes(token));
+    if (availableTokens[0]) {
+      setSelectedToken(availableTokens[0].tokenId);
+    } else {
+      // TODO: find more elegant way
+      setSelectedToken(undefined);
+    }
+  }, [tokens, userItems]);
+  const tokenOptions = tokens.reduce((acc, token) => {
+    if (!userItems.includes(token)) {
+      acc.push(<option key={token.tokenId} value={token.tokenId} label={token.name} />);
+    }
+    return acc;
+  }, []);
 
   const userListItems = userItems.map(item => {
     return <WatchListItem key={item.name} onButtonClick={removeUserItem} {...item} />;
@@ -122,7 +133,6 @@ function WatchList({}) {
     <>
       all tokens:
       <select
-        value={selectedToken}
         onChange={event => {
           const newSelectedToken = event.target.value;
           setSelectedToken(newSelectedToken);
@@ -131,9 +141,9 @@ function WatchList({}) {
         {tokenOptions}
       </select>
       <button
-        onClick={() => {
-          addUserItem(tokens.find(token => token.tokenId === selectedToken));
-        }}
+        onClick={() =>
+          selectedToken && addUserItem(tokens.find(token => token.tokenId === selectedToken))
+        }
       >
         add user item
       </button>
